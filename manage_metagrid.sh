@@ -1,6 +1,6 @@
 # Constants
 METAGRID_CONFIG=metagrid_config
-DEFAULT_EDITOR=emacs
+DEFAULT_EDITOR=vim
 CONFIG_DIR=metagrid_configs
 BACKUP_DIR=$CONFIG_DIR/backups
 BACKUP_FORMAT=config_backup_$(date +'%F_%I-%M-%S')

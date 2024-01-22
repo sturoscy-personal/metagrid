@@ -95,7 +95,15 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
+ALLOWED_HOSTS = [
+    "localhost",
+    "0.0.0.0",
+    "127.0.0.1",
+    "esfg-node-01.cels.anl.gov",
+    "esgf-metagrid-01.cels.anl.gov",
+    "esgf-node.cels.anl.gov",
+]
+
 ROOT_URLCONF = "config.urls"
 
 WSGI_APPLICATION = "config.wsgi.application"
@@ -336,6 +344,9 @@ JWT_AUTH_COOKIE = "jwt-auth"
 # https://github.com/adamchainz/django-cors-headers#setup
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "esfg-node-01.cels.anl.gov",
+    "esgf-metagrid-01.cels.anl.gov",
+    "esgf-node.cels.anl.gov",
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = env.list("CORS_ORIGIN_WHITELIST")

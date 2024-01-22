@@ -1,8 +1,5 @@
 version: "3"
 
-volumes:
-  production_traefik: {}
-
 services:
   traefik:
     build:
@@ -13,8 +10,5 @@ services:
         frontend_prefix: ${PUBLIC_URL}
         backend_prefix: ${DOMAIN_SUBDIRECTORY}
     image: metagrid_production_traefik
-    volumes:
-      - production_traefik:/etc/traefik/acme
     ports:
       - "0.0.0.0:80:80"
-      - "0.0.0.0:443:443"
