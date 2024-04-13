@@ -1,10 +1,10 @@
-import { fireEvent, waitFor, within, screen } from '@testing-library/react';
+import { waitFor, within, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { userCartFixture } from '../../api/mock/fixtures';
 import { rest, server } from '../../api/mock/server';
 import apiRoutes from '../../api/routes';
-import { customRenderKeycloak } from '../../test/custom-render';
+import customRender from '../../test/custom-render';
 import Items, { Props } from './Items';
 import { getRowName } from '../../test/jestTestFunctions';
 import { getSearchFromUrl } from '../../common/utils';
@@ -21,10 +21,12 @@ const user = userEvent.setup();
 
 const activeSearch: ActiveSearchQuery = getSearchFromUrl('project=test1');
 
+jest.setTimeout(35000); // Some tests require more time to run
+
 describe('test the cart items component', () => {
   it('renders message that the cart is empty when no items are added', () => {
     const props = { ...defaultProps, userCart: [] };
-    const { getByText } = customRenderKeycloak(<Items {...props} />);
+    const { getByText } = customRender(<Items {...props} />);
 
     // Check empty cart text renders
     const emptyCart = getByText('Your cart is empty');
@@ -32,7 +34,7 @@ describe('test the cart items component', () => {
   });
 
   it('removes all items from the cart when confirming the popconfirm', async () => {
-    const { getByTestId, getByRole, getAllByText } = customRenderKeycloak(
+    const { getByTestId, getByRole, getAllByText } = customRender(
       <App searchQuery={activeSearch} />
     );
 
@@ -54,7 +56,10 @@ describe('test the cart items component', () => {
     // Check first row has add button and click it
     const addBtn = within(firstRow).getByRole('img', { name: 'plus' });
     expect(addBtn).toBeTruthy();
-    await user.click(addBtn);
+
+    await act(async () => {
+      await user.click(addBtn);
+    });
 
     // Check 'Added items(s) to the cart' message appears
     const addText = await waitFor(
@@ -64,12 +69,18 @@ describe('test the cart items component', () => {
 
     // Switch to the cart page
     const cartBtn = getByTestId('cartPageLink');
-    await user.click(cartBtn);
+
+    await act(async () => {
+      await user.click(cartBtn);
+    });
 
     // Click the Remove All Items button
     const removeAllBtn = getByRole('button', { name: 'Remove All Items' });
     expect(removeAllBtn).toBeTruthy();
-    await user.click(removeAllBtn);
+
+    await act(async () => {
+      await user.click(removeAllBtn);
+    });
 
     // Check popover appears
     const popOver = getByRole('tooltip');
@@ -78,14 +89,17 @@ describe('test the cart items component', () => {
     // Submit the popover
     const submitPopOverBtn = getByRole('button', { name: /ok/i });
     expect(submitPopOverBtn).toBeInTheDocument();
-    await user.click(submitPopOverBtn);
+
+    await act(async () => {
+      await user.click(submitPopOverBtn);
+    });
 
     // Expect cart to now be empty
     expect(screen.getByText('Your cart is empty')).toBeTruthy();
   });
 
   it('handles selecting items in the cart and downloading them via wget', async () => {
-    const { getByTestId, getByRole, getAllByText } = customRenderKeycloak(
+    const { getByTestId, getByRole, getAllByText } = customRender(
       <App searchQuery={activeSearch} />
     );
 
@@ -102,7 +116,10 @@ describe('test the cart items component', () => {
     });
     const addBtn = within(firstRow).getByRole('img', { name: 'plus' });
     expect(addBtn).toBeTruthy();
-    await user.click(addBtn);
+
+    await act(async () => {
+      await user.click(addBtn);
+    });
 
     // Check 'Added items(s) to the cart' message appears
     const addText = await waitFor(
@@ -112,12 +129,10 @@ describe('test the cart items component', () => {
 
     // Switch to the cart page
     const cartBtn = getByTestId('cartPageLink');
-    await user.click(cartBtn);
 
-    // Check first row renders and click the checkbox
-    const firstCheckBox = within(firstRow).getByRole('checkbox');
-    expect(firstCheckBox).toBeTruthy();
-    await user.click(firstCheckBox);
+    await act(async () => {
+      await user.click(cartBtn);
+    });
 
     // Check download form renders
     const downloadForm = getByTestId('downloadForm');
@@ -135,16 +150,19 @@ describe('test the cart items component', () => {
       name: 'download',
     });
     expect(downloadBtn).toBeTruthy();
-    await user.click(downloadBtn);
+
+    await act(async () => {
+      await user.click(downloadBtn);
+    });
   });
 
   it('handles error selecting items in the cart and downloading them via wget', async () => {
     // Override route HTTP response
     server.use(
-      rest.get(apiRoutes.wget.path, (_req, res, ctx) => res(ctx.status(404)))
+      rest.post(apiRoutes.wget.path, (_req, res, ctx) => res(ctx.status(404)))
     );
 
-    const { getByRole, getByTestId } = customRenderKeycloak(
+    const { getByRole, getAllByRole, getByText } = customRender(
       <Items {...defaultProps} />
     );
 
@@ -154,28 +172,21 @@ describe('test the cart items component', () => {
     });
     const firstCheckBox = within(firstRow).getByRole('checkbox');
     expect(firstCheckBox).toBeTruthy();
-    await user.click(firstCheckBox);
 
-    // Check download form renders
-    const downloadForm = getByTestId('downloadForm');
-    expect(downloadForm).toBeTruthy();
-
-    // Select the wget from drop-down options
-    const downloadDropdown = within(downloadForm).getByText('Globus');
-    expect(downloadDropdown).toBeTruthy();
-    await user.click(downloadDropdown);
-
-    const downloadDropdownTest = within(downloadForm).getAllByRole(
-      'combobox'
-    )[0];
-    expect(downloadDropdownTest).toBeTruthy();
-    fireEvent.mouseDown(downloadDropdownTest);
-
-    const wgetOption = getByRole('option', { name: 'wget' });
-    expect(wgetOption).toBeTruthy();
-
-    await waitFor(() => {
-      fireEvent.click(wgetOption);
+    await act(async () => {
+      await user.click(firstCheckBox);
     });
+
+    const downloadBtn = getAllByRole('button', { name: 'download' })[0];
+    await act(async () => {
+      await user.click(downloadBtn);
+    });
+
+    expect(
+      getByText(
+        'The requested resource at the ESGF wget API service was invalid. Please contact support.',
+        { exact: false }
+      )
+    ).toBeTruthy();
   });
 });

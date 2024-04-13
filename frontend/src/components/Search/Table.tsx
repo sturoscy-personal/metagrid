@@ -5,7 +5,7 @@ import {
   PlusOutlined,
   RightCircleOutlined,
 } from '@ant-design/icons';
-import { Form, Select, Table as TableD, Tooltip } from 'antd';
+import { Form, Select, Table as TableD, Tooltip, message } from 'antd';
 import { SizeType } from 'antd/lib/config-provider/SizeContext';
 import { TablePaginationConfig } from 'antd/lib/table';
 import React from 'react';
@@ -51,8 +51,11 @@ const Table: React.FC<React.PropsWithChildren<Props>> = ({
   onPageChange,
   onPageSizeChange,
 }) => {
+  const [messageApi, contextHolder] = message.useMessage();
+
   // Add options to this constant as needed
   type DatasetDownloadTypes = 'wget' | 'Globus';
+
   // If a record supports downloads from the allowed downloads, it will render
   // in the drop downs
   const allowedDownloadTypes: DatasetDownloadTypes[] = ['wget'];
@@ -187,8 +190,8 @@ const Table: React.FC<React.PropsWithChildren<Props>> = ({
       ),
     },
     {
-      title: 'Dataset Title',
-      dataIndex: 'title',
+      title: 'Dataset ID',
+      dataIndex: 'master_id',
       key: 'title',
       width: 'auto',
       render: (title: string, record: RawSearchResult) => {
@@ -251,7 +254,6 @@ const Table: React.FC<React.PropsWithChildren<Props>> = ({
       key: 'download',
       width: 180,
       render: (record: RawSearchResult) => {
-        const supportedDownloadTypes = record.access;
         const formKey = `download-${record.id}`;
 
         /**
@@ -263,12 +265,13 @@ const Table: React.FC<React.PropsWithChildren<Props>> = ({
           /* istanbul ignore else */
           if (downloadType === 'wget') {
             showNotice(
+              messageApi,
               'The wget script is generating, please wait momentarily.',
               { type: 'info' }
             );
             fetchWgetScript([record.id], filenameVars).catch(
               (error: ResponseError) => {
-                showError(error.message);
+                showError(messageApi, error.message);
               }
             );
           }
@@ -276,6 +279,7 @@ const Table: React.FC<React.PropsWithChildren<Props>> = ({
 
         return (
           <>
+            {contextHolder}
             <Form
               className={topDataRowTargets.downloadScriptForm.class()}
               layout="inline"
@@ -289,20 +293,14 @@ const Table: React.FC<React.PropsWithChildren<Props>> = ({
                   disabled={record.retracted === true}
                   className={topDataRowTargets.downloadScriptOptions.class()}
                   style={{ width: 100 }}
-                >
-                  {allowedDownloadTypes.map(
-                    (option) =>
-                      (supportedDownloadTypes.includes(option) ||
-                        option === 'wget') && (
-                        <Select.Option
-                          key={`${formKey}-${option}`}
-                          value={option}
-                        >
-                          {option}
-                        </Select.Option>
-                      )
-                  )}
-                </Select>
+                  options={allowedDownloadTypes.map((option) => {
+                    return {
+                      key: `${formKey}-${option}`,
+                      value: option,
+                      label: option,
+                    };
+                  })}
+                />
               </Form.Item>
               <Form.Item>
                 <Button

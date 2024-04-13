@@ -1,9 +1,10 @@
 import userEvent from '@testing-library/user-event';
 import React from 'react';
+import { act } from '@testing-library/react';
 import StartPopup from './StartPopup';
 import StartupMessages from './messageDisplayData';
 import { TourTitles } from '../../common/reactJoyrideSteps';
-import { customRenderKeycloak } from '../../test/custom-render';
+import customRender from '../../test/custom-render';
 
 const { defaultMessageId, messageToShow } = StartupMessages;
 
@@ -32,7 +33,7 @@ afterEach(() => {
 
 describe('Start popup tests', () => {
   it('renders start popup with welcome message if no local data exists.', () => {
-    const { getByTestId } = customRenderKeycloak(<StartPopup />);
+    const { getByTestId } = customRender(<StartPopup />);
 
     // Check welcome template rendered (default)
     const welcomeHeader = getByTestId('welcomeTemplate');
@@ -40,7 +41,7 @@ describe('Start popup tests', () => {
   });
 
   it('renders start popup with welcome message and starts search tour.', async () => {
-    const { getByTestId, getByText } = customRenderKeycloak(<StartPopup />);
+    const { getByTestId, getByText } = customRender(<StartPopup />);
 
     // Check welcome template rendered (default)
     const welcomeHeader = getByTestId('welcomeTemplate');
@@ -48,11 +49,14 @@ describe('Start popup tests', () => {
 
     const searchTourBtn = getByText(TourTitles.Main);
     expect(welcomeHeader).toBeTruthy();
-    await user.click(searchTourBtn);
+
+    await act(async () => {
+      await user.click(searchTourBtn);
+    });
   });
 
   it('renders start popup with welcome message and starts cart tour.', async () => {
-    const { getByTestId, getByText } = customRenderKeycloak(<StartPopup />);
+    const { getByTestId, getByText } = customRender(<StartPopup />);
 
     // Check welcome template rendered (default)
     const welcomeHeader = getByTestId('welcomeTemplate');
@@ -60,11 +64,14 @@ describe('Start popup tests', () => {
 
     const cartTourBtn = getByText(TourTitles.Cart);
     expect(welcomeHeader).toBeTruthy();
-    await user.click(cartTourBtn);
+
+    await act(async () => {
+      await user.click(cartTourBtn);
+    });
   });
 
   it('renders start popup with welcome message and starts saved search tour.', async () => {
-    const { getByTestId, getByText } = customRenderKeycloak(<StartPopup />);
+    const { getByTestId, getByText } = customRender(<StartPopup />);
 
     // Check welcome template rendered (default)
     const welcomeHeader = getByTestId('welcomeTemplate');
@@ -72,11 +79,14 @@ describe('Start popup tests', () => {
 
     const searchesTourBtn = getByText(TourTitles.Searches);
     expect(welcomeHeader).toBeTruthy();
-    await user.click(searchesTourBtn);
+
+    await act(async () => {
+      await user.click(searchesTourBtn);
+    });
   });
 
   it('renders start popup with welcome message and starts node page tour.', async () => {
-    const { getByTestId, getByText } = customRenderKeycloak(<StartPopup />);
+    const { getByTestId, getByText } = customRender(<StartPopup />);
 
     // Check welcome template rendered (default)
     const welcomeHeader = getByTestId('welcomeTemplate');
@@ -84,12 +94,15 @@ describe('Start popup tests', () => {
 
     const nodeTourBtn = getByText(TourTitles.Node);
     expect(welcomeHeader).toBeTruthy();
-    await user.click(nodeTourBtn);
+
+    await act(async () => {
+      await user.click(nodeTourBtn);
+    });
   });
 
   it('renders start popup with message data missing.', () => {
     StartupMessages.defaultMessageId = 'test';
-    const { getByText } = customRenderKeycloak(<StartPopup />);
+    const { getByText } = customRender(<StartPopup />);
     StartupMessages.defaultMessageId = defaultMessageId;
 
     // Check welcome template rendered (default)
@@ -99,7 +112,7 @@ describe('Start popup tests', () => {
 
   it('renders start popup with wrong version specified', () => {
     window.localStorage.setItem('lastMessageSeen', 'test');
-    const { getByTestId } = customRenderKeycloak(<StartPopup />);
+    const { getByTestId } = customRender(<StartPopup />);
 
     // Check changelog template rendered
     const changelog = getByTestId('changelogTemplate');
@@ -108,7 +121,7 @@ describe('Start popup tests', () => {
 
   it('start popup doesnt render when correct version is specified', () => {
     window.localStorage.setItem('lastMessageSeen', messageToShow);
-    const { queryByText } = customRenderKeycloak(<StartPopup />);
+    const { queryByText } = customRender(<StartPopup />);
 
     // Check that popup doesn't render
     const github = queryByText('GitHub Issues');

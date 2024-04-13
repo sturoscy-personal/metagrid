@@ -1,16 +1,16 @@
-import { waitFor } from '@testing-library/react';
+import { act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { getCurrentAppPage, TourTitles } from '../common/reactJoyrideSteps';
 import { AppPage } from '../common/types';
 import Support from '../components/Support';
-import { customRenderKeycloak } from '../test/custom-render';
+import customRender from '../test/custom-render';
 
 const user = userEvent.setup();
 
 describe('test ReactJoyrideProvider', () => {
   it('renders using provider', async () => {
-    const { getByTestId, getByText } = customRenderKeycloak(
+    const { getByTestId, getByText } = customRender(
       <div data-testid="reactJoyrideProvider">
         <p>renders</p>
       </div>
@@ -47,7 +47,7 @@ describe('test ReactJoyrideProvider', () => {
     // Set location then render modal
     window.location.pathname = 'testing/search';
     expect(getCurrentAppPage()).toEqual(AppPage.Main);
-    const { getByTestId, getByRole } = customRenderKeycloak(
+    const { getByTestId, getByRole } = customRender(
       <Support open onClose={jest.fn()} />
     );
 
@@ -60,7 +60,9 @@ describe('test ReactJoyrideProvider', () => {
     expect(button).toBeTruthy();
 
     // Start tutorial and check that it renders
-    await user.click(button);
+    await act(async () => {
+      await user.click(button);
+    });
     await waitFor(() => button);
     const tourModal = getByRole('heading', { name: TourTitles.Main });
     expect(tourModal).toBeTruthy();
@@ -69,7 +71,9 @@ describe('test ReactJoyrideProvider', () => {
     let nextBtn = getByRole('button', { name: 'Next' });
     expect(nextBtn).toBeTruthy();
 
-    await user.click(button);
+    await act(async () => {
+      await user.click(button);
+    });
     await waitFor(() => button);
     nextBtn = getByRole('button', { name: 'Next' });
 

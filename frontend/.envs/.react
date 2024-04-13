@@ -1,5 +1,7 @@
 # =====================FRONTEND CONFIG====================
 
+PUBLIC_URL=
+
 # Redirect the frontend to home page when old subdirectory is used (optional)
 REACT_APP_PREVIOUS_URL=metagrid
 
@@ -55,4 +57,4 @@ REACT_APP_DJANGO_LOGIN_URL=http://localhost:8000/login/globus/
 REACT_APP_DJANGO_LOGOUT_URL=http://localhost:8000/proxy/globus-logout/
 
 # Authentication Method
-REACT_APP_AUTHENTICATION_METHOD=keycloak
+REACT_APP_AUTHENTICATION_METHOD=globus

@@ -1,4 +1,4 @@
-import { fireEvent, waitFor } from '@testing-library/react';
+import { act, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import {
@@ -7,7 +7,7 @@ import {
   parsedNodeStatusFixture,
 } from '../../api/mock/fixtures';
 import FacetsForm, { humanizeFacetNames, Props } from './FacetsForm';
-import { customRenderKeycloak } from '../../test/custom-render';
+import customRender from '../../test/custom-render';
 
 const user = userEvent.setup();
 
@@ -36,7 +36,7 @@ const defaultProps: Props = {
 
 describe('test FacetsForm component', () => {
   it('handles submitting filename', async () => {
-    const { getByRole, getByTestId } = customRenderKeycloak(
+    const { getByRole, getByTestId } = customRender(
       <FacetsForm {...defaultProps} />
     );
 
@@ -44,7 +44,10 @@ describe('test FacetsForm component', () => {
     const filenameSearchPanel = getByRole('button', {
       name: 'right Filename',
     });
-    await user.click(filenameSearchPanel);
+
+    await act(async () => {
+      await user.click(filenameSearchPanel);
+    });
 
     // Change form field values
     const input = getByTestId('filename-search-input') as HTMLInputElement;
@@ -60,9 +63,7 @@ describe('test FacetsForm component', () => {
   });
 
   it('handles setting the globusReady option on and off', () => {
-    const { getByLabelText } = customRenderKeycloak(
-      <FacetsForm {...defaultProps} />
-    );
+    const { getByLabelText } = customRender(<FacetsForm {...defaultProps} />);
 
     const globusReadyRadioOption = getByLabelText('Only Globus Transferrable');
     const anyRadioOption = getByLabelText('Any');
@@ -86,43 +87,89 @@ describe('test FacetsForm component', () => {
   });
 
   it('handles expand and collapse facet panels', async () => {
-    const { getByText } = customRenderKeycloak(
-      <FacetsForm {...defaultProps} />
-    );
+    const { getByText } = customRender(<FacetsForm {...defaultProps} />);
 
     // Click the expand all button
     const expandAllBtn = getByText('Expand All');
     expect(expandAllBtn).toBeTruthy();
-    await user.click(expandAllBtn);
+
+    await act(async () => {
+      await user.click(expandAllBtn);
+    });
 
     // Click the collaps all button
     const collapseAllBtn = getByText('Collapse All');
     expect(collapseAllBtn).toBeTruthy();
-    await user.click(collapseAllBtn);
+
+    await act(async () => {
+      await user.click(collapseAllBtn);
+    });
   });
 
-  it('handles changing expand to collapse and vice-versa base on user actions', async () => {
-    const { getByText } = customRenderKeycloak(
+  it('handles copying facet items to clip board', async () => {
+    const { getByText, getByRole } = customRender(
       <FacetsForm {...defaultProps} />
     );
 
     // Expand the group1 panel
     const group1Btn = getByText('Group1');
     expect(group1Btn).toBeTruthy();
-    await user.click(group1Btn);
+
+    await act(async () => {
+      await user.click(group1Btn);
+    });
+
+    // Click the copy facets button
+    const copyBtn = getByRole('img', { name: 'copy' });
+    expect(copyBtn).toBeTruthy();
+
+    await act(async () => {
+      await user.click(copyBtn);
+    });
+
+    // Check the clipboard has items
+    const items = await navigator.clipboard.readText();
+    expect(items).toEqual('aims3.llnl.gov (3)\nesgf1.dkrz.de (5)');
+
+    // Expect result message to show
+    const resultNotification = getByText('Data Nodes copied to clipboard!');
+    expect(resultNotification).toBeTruthy();
+
+    await act(async () => {
+      await user.click(resultNotification);
+    });
+  });
+
+  it('handles changing expand to collapse and vice-versa base on user actions', async () => {
+    const { getByText } = customRender(<FacetsForm {...defaultProps} />);
+
+    // Expand the group1 panel
+    const group1Btn = getByText('Group1');
+    expect(group1Btn).toBeTruthy();
+
+    await act(async () => {
+      await user.click(group1Btn);
+    });
 
     // Expand the group2 panel
     const group2Btn = getByText('Group2');
     expect(group2Btn).toBeTruthy();
-    await user.click(group2Btn);
+
+    await act(async () => {
+      await user.click(group2Btn);
+    });
 
     // The collapse all button should now show since 2 panels are expanded
     const collapseAllBtn = getByText('Collapse All');
     expect(collapseAllBtn).toBeTruthy();
 
     // Collapse group 1 and 2 panels
-    await user.click(group1Btn);
-    await user.click(group2Btn);
+    await act(async () => {
+      await user.click(group1Btn);
+    });
+    await act(async () => {
+      await user.click(group2Btn);
+    });
 
     // The expand all button should show since all panels are collapsed
     const expandAllBtn = getByText('Expand All');
@@ -130,7 +177,7 @@ describe('test FacetsForm component', () => {
   });
 
   it('handles date picker for versioning', async () => {
-    const { getByTestId, getByRole } = customRenderKeycloak(
+    const { getByTestId, getByRole } = customRender(
       <FacetsForm {...defaultProps} />
     );
 
@@ -138,7 +185,10 @@ describe('test FacetsForm component', () => {
     const additionalPropertiesPanel = getByRole('button', {
       name: 'right Additional Properties',
     });
-    await user.click(additionalPropertiesPanel);
+
+    await act(async () => {
+      await user.click(additionalPropertiesPanel);
+    });
 
     // Check date picker renders
     const datePickerComponent = getByTestId('version-range-datepicker');
@@ -157,9 +207,11 @@ describe('test FacetsForm component', () => {
     });
 
     // Open calendar, select the set value, and click it
-    await user.click(
-      document.querySelector('.ant-picker-cell-selected') as HTMLInputElement
-    );
+    await act(async () => {
+      await user.click(
+        document.querySelector('.ant-picker-cell-selected') as HTMLInputElement
+      );
+    });
 
     await waitFor(() => getByTestId('facets-form'));
   });

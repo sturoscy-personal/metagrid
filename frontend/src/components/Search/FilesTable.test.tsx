@@ -1,4 +1,4 @@
-import { waitFor, within } from '@testing-library/react';
+import { act, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import {
@@ -9,7 +9,7 @@ import { rest, server } from '../../api/mock/server';
 import apiRoutes from '../../api/routes';
 import FilesTable, { DownloadUrls, genDownloadUrls, Props } from './FilesTable';
 import { RawSearchResult } from './types';
-import { customRenderKeycloak } from '../../test/custom-render';
+import customRender from '../../test/custom-render';
 import { selectDropdownOption } from '../../test/jestTestFunctions';
 
 const user = userEvent.setup();
@@ -94,7 +94,7 @@ const defaultProps: Props = {
 
 describe('test FilesTable component', () => {
   it('renders an empty data table when no results are available', async () => {
-    const { getByRole } = customRenderKeycloak(
+    const { getByRole } = customRender(
       <FilesTable {...defaultProps} numResults={undefined} />
     );
 
@@ -109,9 +109,7 @@ describe('test FilesTable component', () => {
       )
     );
 
-    const { getByRole } = customRenderKeycloak(
-      <FilesTable {...defaultProps} />
-    );
+    const { getByRole } = customRender(<FilesTable {...defaultProps} />);
     const alertMsg = await waitFor(() =>
       getByRole('img', { name: 'close-circle', hidden: true })
     );
@@ -119,9 +117,7 @@ describe('test FilesTable component', () => {
   });
 
   it('handles downloading data with httpserver', async () => {
-    const { getByTestId } = customRenderKeycloak(
-      <FilesTable {...defaultProps} />
-    );
+    const { getByTestId } = customRender(<FilesTable {...defaultProps} />);
 
     // Check component renders
     const component = await waitFor(() => getByTestId('filesTable'));
@@ -150,14 +146,23 @@ describe('test FilesTable component', () => {
       name: 'download',
     });
     expect(downloadBtn).toBeTruthy();
-    await user.click(downloadBtn);
+
+    await act(async () => {
+      await user.click(downloadBtn);
+    });
 
     // Test the copy button
     const copyBtn = within(row).getByRole('button', {
       name: 'copy',
     });
     expect(copyBtn).toBeTruthy();
-    await user.click(copyBtn);
+
+    await act(async () => {
+      await user.click(copyBtn);
+    });
+
+    // Wait for component to re-render
+    await waitFor(() => getByTestId('filesTable'));
   });
 
   it('handles pagination and page size changes', async () => {
@@ -181,7 +186,7 @@ describe('test FilesTable component', () => {
       )
     );
 
-    const { getByRole, getByTestId } = customRenderKeycloak(
+    const { getByRole, getByTestId } = customRender(
       <FilesTable {...defaultProps} numResults={numFound} />
     );
 
@@ -210,18 +215,16 @@ describe('test FilesTable component', () => {
 
     // Select the 'Next Page' button (only enabled if there are > 10 results)
     const nextPage = await waitFor(() =>
-      getByRole('listitem', { name: 'Next Page' })
+      within(getByRole('listitem', { name: 'Next Page' })).getByRole('button')
     );
-    await user.click(nextPage);
 
-    // Wait for component to re-render
-    await waitFor(() => getByTestId('filesTable'));
+    await act(async () => {
+      await user.click(nextPage);
+    });
   });
 
   it('handles clicking the expandable icon', async () => {
-    const { getByTestId } = customRenderKeycloak(
-      <FilesTable {...defaultProps} />
-    );
+    const { getByTestId } = customRender(<FilesTable {...defaultProps} />);
 
     // Check component renders
     const component = await waitFor(() => getByTestId('filesTable'));
@@ -257,13 +260,19 @@ describe('test FilesTable component', () => {
       name: 'right-circle',
     });
     expect(expandableIcon).toBeTruthy();
-    await user.click(expandableIcon);
+
+    await act(async () => {
+      await user.click(expandableIcon);
+    });
 
     // Get the down circle icon within the cell and click to close the expandable row
     const expandableDownIcon = within(expandableCell).getByRole('img', {
       name: 'down-circle',
     });
     expect(expandableDownIcon).toBeTruthy();
-    await user.click(expandableDownIcon);
+
+    await act(async () => {
+      await user.click(expandableDownIcon);
+    });
   });
 });
